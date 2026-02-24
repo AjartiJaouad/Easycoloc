@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('settlements', function (Blueprint $table) {
             $table->id();
             $table->foreignId('colocation_id')->constrained()->onDelete('cascade');
-            $table->foreignId('debtor_id')->constrained()->onDelete('cascade');
-            $table->foreignId('creditor_id')->constrained()->onDelete('cascade');
+            $table->foreignId('debtor_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('creditor_id')->constrained('users')->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->boolean('is_paid')->default(false);
             $table->timestamps();
