@@ -14,8 +14,7 @@ return new class extends Migration
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('invitation_token');
-            $table->enum('status',['active','cancelled'])->default('active');
+            $table->foreignId('colocation_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

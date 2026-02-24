@@ -13,9 +13,11 @@ return new class extends Migration
     {
         Schema::create('colocations', function (Blueprint $table) {
             $table->id();
-            $table->integer('reputation')->default(0);
-            $table->boolean('is_global_admin');
-            $table->boolean('is_banned');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('colocation_id')->constrained()->onDelete('cascade');
+            $table->enum('role', ['owner', 'member'])->default('member');
+            $table->timestamp('joined_at')->useCurrent();
+            $table->timestamp('left_at')->nullable();
             $table->timestamps();
         });
     }
