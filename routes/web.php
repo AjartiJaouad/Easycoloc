@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ColocationController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -11,15 +12,15 @@ Route::get('/', function () {
 Route::get('/admin-test', function () {
     $user = auth()->user();
 
-    if (!$user) {
+    if (! $user) {
         return redirect('/login');
     }
 
-    if (!$user->is_global_admin) {
+    if (! $user->is_global_admin) {
         return redirect('/dashboard')->with('error', 'Access denied.');
     }
 
-    return "Welcome Global Admin!";
+    return 'Welcome Global Admin!';
 })->middleware('auth');
 
 // Dashboard
