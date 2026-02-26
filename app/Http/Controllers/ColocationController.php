@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Colocation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use App\Mail\ColocationInvitation;
 
 class ColocationController extends Controller
 {
@@ -55,5 +57,27 @@ class ColocationController extends Controller
         $colocation->update(['status' => 'cancelled']);
 
         return redirect()->route('colocations.index')->with('success', 'La colocation a été annulée avec succès.');
+    }
+
+    public function sendInvitation(Request $request, Colocation $colocation)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $isOwner = $colocation->users()
+            ->where('user_id', Auth::id())
+            ->where('colocation_user.role', 'owner')
+            ->exists();
+
+        if (! $isOwner) {
+            return redirect()->route('colocations.index')
+                ->with('error', 'Seul le propriétaire peut envoyer une invitation.');
+        }
+
+        Mail::to($request->email)->send(new ColocationInvitation($colocation));
+
+        return redirect()->route('colocations.index')
+            ->with('success', 'Invitation envoyée avec succès à ' . $request->email);
     }
 }
