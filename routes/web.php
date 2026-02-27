@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -33,7 +34,6 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-
 Route::middleware('auth')->group(function () {
     Route::post('/colocations/join', [ColocationController::class, 'join'])->name('colocations.join');
 
@@ -41,7 +41,6 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/colocations/{colocation}/cancel', [ColocationController::class, 'cancel'])->name('colocations.cancel');
     Route::post('/colocations/{colocation}/invite', [ColocationController::class, 'sendInvitation'])->name('colocations.invite');
-    Route::post('/colocations/{colocation}/leave', [ColocationController::class, 'leave'])->name('colocations.leave');
-Route::delete('/colocations/{colocation}/members/{user}', [ColocationController::class, 'removeMember'])->name('colocations.removeMember');
+
 });
 require __DIR__.'/auth.php';
