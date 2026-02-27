@@ -6,8 +6,9 @@
             </h2>
 
             {{-- Afficher le bouton de création uniquement si l'utilisateur n'a pas de colocation active --}}
-            @if(!$colocations->where('status', 'active')->first())
-                <a href="{{ route('colocations.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm transition">
+            @if (!$colocations->where('status', 'active')->first())
+                <a href="{{ route('colocations.create') }}"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm transition">
                     + Nouvelle Colocation
                 </a>
             @endif
@@ -32,7 +33,7 @@
             @endif
 
             {{-- Section Rejoindre : Affichée uniquement si l'utilisateur est libre --}}
-            @if(!$colocations->where('status', 'active')->first())
+            @if (!$colocations->where('status', 'active')->first())
                 <div class="mb-6 p-4 bg-white border-l-4 border-blue-500 rounded-lg shadow-sm">
                     <h3 class="text-sm font-bold text-gray-700 mb-3">Rejoindre une colocation via un code :</h3>
                     <form action="{{ route('colocations.join') }}" method="POST" class="flex items-center gap-4">
@@ -48,18 +49,20 @@
             @else
                 <div class="mb-6 p-4 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm flex items-center shadow-sm">
                     <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clip-rule="evenodd"></path>
                     </svg>
                     Vous participez déjà à une colocation active. Vous devez la quitter ou l'annuler pour en rejoindre une autre.
                 </div>
             @endif
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                @if($colocations->isEmpty())
+                @if ($colocations->isEmpty())
                     <p class="text-gray-500 text-center py-4">Vous ne participez à aucune colocation pour le moment.</p>
                 @else
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        @foreach($colocations as $colocation)
+                        @foreach ($colocations as $colocation)
                             <div class="border rounded-xl p-5 shadow-sm relative {{ $colocation->status === 'cancelled' ? 'bg-gray-50 border-gray-200' : 'bg-white border-blue-100' }}">
 
                                 <h3 class="text-xl font-bold text-gray-800">{{ $colocation->name }}</h3>
@@ -76,19 +79,25 @@
                                     </p>
                                 </div>
 
-                                @if($colocation->status === 'active')
+                                @if ($colocation->status === 'active')
                                     <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-center">
                                         <span class="text-xs text-gray-500 block mb-1">Code d'invitation (Token) :</span>
                                         <code class="font-mono text-blue-700 font-bold text-lg select-all">{{ $colocation->invitation_token }}</code>
                                     </div>
 
+                                    {{-- 🌟 BOUTON DÉPENSES VISIBLE PAR TOUT LE MONDE ICI 🌟 --}}
+                                    <a href="{{ route('expenses.index', $colocation) }}"
+                                        class="block mt-4 text-center w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition">
+                                        Gérer les dépenses
+                                    </a>
+
                                     {{-- Gestion des membres (Uniquement pour le Propriétaire) --}}
-                                    @if($colocation->pivot->role === 'owner')
+                                    @if ($colocation->pivot->role === 'owner')
                                         <div class="mt-4">
                                             <p class="text-xs font-bold text-gray-500 uppercase mb-2">Membres actuels :</p>
                                             <ul class="text-sm space-y-2">
-                                                @foreach($colocation->users as $member)
-                                                    @if($member->id !== auth()->id())
+                                                @foreach ($colocation->users as $member)
+                                                    @if ($member->id !== auth()->id())
                                                         <li class="flex justify-between items-center bg-gray-50 p-2 rounded">
                                                             <span>{{ $member->name }}</span>
                                                             <form action="{{ route('colocations.removeMember', [$colocation, $member->id]) }}" method="POST" onsubmit="return confirm('Retirer ce membre de la colocation ?');">
@@ -108,8 +117,7 @@
                                             @csrf
                                             <p class="text-xs text-gray-500 mb-2 font-semibold">Inviter un ami par e-mail :</p>
                                             <div class="flex gap-2">
-                                                <input type="email" name="email" placeholder="Email..." required
-                                                       class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                                <input type="email" name="email" placeholder="Email..." required class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                                                 <x-primary-button class="text-xs">Inviter</x-primary-button>
                                             </div>
                                         </form>
@@ -124,7 +132,7 @@
                                     @endif
 
                                     {{-- Bouton Quitter (Uniquement pour les Membres) --}}
-                                    @if($colocation->pivot->role === 'member')
+                                    @if ($colocation->pivot->role === 'member')
                                         <form action="{{ route('colocations.leave', $colocation) }}" method="POST" class="mt-5" onsubmit="return confirm('Voulez-vous vraiment quitter cette colocation ?');">
                                             @csrf
                                             <button type="submit" class="w-full bg-orange-50 hover:bg-orange-100 text-orange-600 font-semibold py-2 px-4 border border-orange-200 rounded-lg text-sm transition text-center">
