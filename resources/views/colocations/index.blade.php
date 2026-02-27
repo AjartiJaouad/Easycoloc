@@ -5,7 +5,7 @@
                 {{ __('Mes Colocations') }}
             </h2>
             <a href="{{ route('colocations.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md text-sm transition">
-                + Nouvelle Colocation
+                + nouvelle colocation
             </a>
         </div>
     </x-slot>
@@ -43,14 +43,14 @@
 
                                 @if($colocation->status === 'active')
                                     <div class="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-center">
-                                        <span class="text-xs text-gray-500 block mb-1">Code d'invitation (Token):</span>
+                                        <span class="text-xs text-gray-500 block mb-1">Code d’invitation (jeton) :</span>
                                         <code class="font-mono text-blue-700 font-bold text-lg select-all">{{ $colocation->invitation_token }}</code>
                                     </div>
 
                                     @if($colocation->pivot->role === 'owner')
                                         <form action="{{ route('colocations.invite', $colocation) }}" method="POST" class="mt-4 border-t pt-4">
                                             @csrf
-                                            <p class="text-xs text-gray-500 mb-2 font-semibold">Inviter un ami par email :</p>
+                                            <p class="text-xs text-gray-500 mb-2 font-semibold">Inviter un·e ami·e par e‑mail :</p>
                                             <div class="flex gap-2">
                                                 <input type="email" name="email" placeholder="Email..." required
                                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
@@ -78,5 +78,16 @@
                 @endif
             </div>
         </div>
+        <div class="mb-6 p-4 bg-white border border-gray-200 rounded-lg">
+    <form action="{{ route('colocations.join') }}" method="POST" class="flex items-center gap-4">
+        @csrf
+        <div class="flex-1">
+            <x-text-input name="invitation_token" placeholder="Entrez le code d'invitation" class="w-full" required />
+        </div>
+        <x-primary-button>
+            Rejoindre
+        </x-primary-button>
+    </form>
+</div>
     </div>
 </x-app-layout>
