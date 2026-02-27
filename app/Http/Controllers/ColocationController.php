@@ -106,5 +106,29 @@ class ColocationController extends Controller
         $colocation->users()->attach(Auth::id(), ['role' => 'member', 'joined_at' => now()]);
 
         return redirect()->route('colocations.index')->with('success', 'Bienvenue dans la colocation !');
+
+    }
+
+    public function leave(Colocation $colocation)
+    {
+        $colocation->users()->updateExistingPivot(auth()->id(), [
+            'left_at' => now(),
+        ]);
+
+        return redirect()->route('colocations.index')->with('success', 'Vous avez quitté la colocation.');
+    }
+
+    public function removeMember(Colocation $colocation, $userId)
+    {
+        $isOwner = $colocation->users()
+            ->where('user_id', auth()->id())
+            ->where('colocation_user.role', 'owner')
+            ->exists();
+        if (! $isOwner) {
+            return redirect()->back()->with('error', 'Action non autorisée.');
+        }
+        $colocation->users()->detach($userId);
+
+        return redirect()->back()->with('success', 'Membre retiré avec succès.');
     }
 }
