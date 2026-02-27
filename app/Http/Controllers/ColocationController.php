@@ -21,11 +21,19 @@ class ColocationController extends Controller
 
     public function create()
     {
+        if (Auth::user()->colocations()->where('status', 'active')->exists()) {
+            return redirect()->route('colocations.index')->with('error', 'Vous avez déjà une colocation active.');
+        }
+
         return view('colocations.create');
     }
 
     public function store(Request $request)
     {
+        if (Auth::user()->colocations()->where('status', 'active')->exists()) {
+            return redirect()->route('colocations.index')->with('error', 'Action impossible : vous avez déjà une colocation active.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
@@ -40,7 +48,7 @@ class ColocationController extends Controller
             'role' => 'owner',
         ]);
 
-        return redirect()->route('colocations.index')->with('success', 'Colocation créée avec succès ! Token d\'invitation : '.$colocation->invitation_token);
+        return redirect()->route('colocations.index')->with('success', 'Colocation créée avec succès !');
     }
 
     public function cancel(Colocation $colocation)
@@ -84,6 +92,11 @@ class ColocationController extends Controller
     public function join(Request $request)
     {
         $request->validate(['invitation_token' => 'required|exists:colocations,invitation_token']);
+
+        if (Auth::user()->colocations()->where('status', 'active')->exists()) {
+            return redirect()->back()->with('error', 'Impossible de rejoindre : vous faites déjà partie d\'une colocation active.');
+        }
+
         $colocation = \App\Models\Colocation::where('invitation_token', $request->invitation_token)->first();
 
         if ($colocation->users()->where('user_id', Auth::id())->exists()) {
