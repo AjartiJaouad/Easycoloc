@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Colocation;
 use App\Models\Expense;
 use Illuminate\Http\Request;

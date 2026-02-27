@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\ExpenseController;
+
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,8 +44,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/colocations/{colocation}/cancel', [ColocationController::class, 'cancel'])->name('colocations.cancel');
     Route::post('/colocations/{colocation}/invite', [ColocationController::class, 'sendInvitation'])->name('colocations.invite');
     Route::get('/colocations/{colocation}/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
-    Route::get('/colocations/{colocation}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
-    Route::get('/colocations/{colocation}/expenses', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+    Route::post('/colocations/{colocation}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::delete('/colocations/{colocation}/expenses', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
 });
 require __DIR__.'/auth.php';
