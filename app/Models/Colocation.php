@@ -14,8 +14,8 @@ class Colocation extends Model
     public function users()
     {
         return $this->belongsToMany(User::class)
-                    ->withPivot('role', 'joined_at', 'left_at')
-                    ->withTimestamps();
+            ->withPivot('role', 'joined_at', 'left_at')
+            ->withTimestamps();
     }
 
     public function categories()
@@ -32,4 +32,6 @@ class Colocation extends Model
     {
         return $this->hasMany(Settlement::class);
     }
+
+    
 }
