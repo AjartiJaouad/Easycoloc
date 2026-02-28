@@ -6,23 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::table('colocation_user', function (Blueprint $table) {
-            $table->timestamps('left_at')->nullable();
-        });
+        if (! Schema::hasColumn('colocation_user', 'left_at')) {
+            Schema::table('colocation_user', function (Blueprint $table) {
+                $table->timestamp('left_at')->nullable();
+            });
+        }
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::table('colocation_user', function (Blueprint $table) {
-            //
-        });
+        if (Schema::hasColumn('colocation_user', 'left_at')) {
+            Schema::table('colocation_user', function (Blueprint $table) {
+                $table->dropColumn('left_at');
+            });
+        }
     }
 };

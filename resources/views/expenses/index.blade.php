@@ -24,42 +24,28 @@
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Ajouter une nouvelle dépense</h3>
 
-                <form action="{{ route('expenses.store', $colocation) }}" method="POST">
+                <form action="{{ route('expenses.store', $colocation->id) }}" method="POST" class="flex flex-wrap gap-4 items-center">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-                        <div>
-                            <x-input-label for="title" value="Quoi ? (Ex: Courses)" />
-                            <x-text-input id="title" name="title" type="text" class="mt-1 block w-full" required />
-                        </div>
+                    <input type="text" name="title" placeholder="Quoi ? (Ex: Courses)" required
+                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm flex-1">
 
-                        <div>
-                            <x-input-label for="amount" value="Combien ? (€/MAD)" />
-                            <x-text-input id="amount" name="amount" type="number" step="0.01" min="0.1" class="mt-1 block w-full" required />
-                        </div>
+                    <input type="number" name="amount" step="0.01" placeholder="Combien ? (€/MAD)" required
+                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-32">
 
-                        <div>
-                            <x-input-label for="spent_at" value="Quand ?" />
-                            <x-text-input id="spent_at" name="spent_at" type="date" value="{{ date('Y-m-d') }}" class="mt-1 block w-full" required />
-                        </div>
+                    <input type="date" name="spent_at" required
+                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
 
-                        <div>
-                            <x-input-label for="category" value="Catégorie" />
-                            <select id="category" name="category" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                                <option value="Alimentation">Alimentation</option>
-                                <option value="Loyer">Loyer</option>
-                                <option value="Énergie">Énergie (Eau/Élec)</option>
-                                <option value="Internet">Internet</option>
-                                <option value="Autre">Autre</option>
-                            </select>
-                        </div>
-                    </div>
+                    <select name="category_id" required class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                        <option value="" disabled selected>Catégorie</option>
+                        @foreach ($categories as $category)
+                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
 
-                    <div class="mt-4 flex justify-end">
-                        <x-primary-button>
-                            Ajouter la dépense
-                        </x-primary-button>
-                    </div>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                        Ajouter
+                    </button>
                 </form>
             </div>
 
@@ -67,7 +53,7 @@
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Historique des dépenses</h3>
 
-                @if($expenses->isEmpty())
+                @if ($expenses->isEmpty())
                     <p class="text-gray-500 text-center py-4">Aucune dépense enregistrée pour le moment.</p>
                 @else
                     <div class="overflow-x-auto">
@@ -83,21 +69,30 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($expenses as $expense)
+                                @foreach ($expenses as $expense)
                                     <tr class="border-b hover:bg-gray-50">
-                                        <td class="px-4 py-3 text-gray-500">{{ \Carbon\Carbon::parse($expense->spent_at)->format('d/m/Y') }}</td>
+                                        <td class="px-4 py-3 text-gray-500">
+                                            {{ \Carbon\Carbon::parse($expense->spent_at)->format('d/m/Y') }}
+                                        </td>
                                         <td class="px-4 py-3 font-medium text-blue-600">{{ $expense->user->name }}</td>
                                         <td class="px-4 py-3 text-gray-800">{{ $expense->title }}</td>
                                         <td class="px-4 py-3 text-gray-500">
-                                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">{{ $expense->category }}</span>
+                                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
+                                                {{ $expense->category->name ?? 'Autre' }}
+                                            </span>
                                         </td>
-                                        <td class="px-4 py-3 font-bold text-gray-900 text-right">{{ number_format($expense->amount, 2) }}</td>
+                                        <td class="px-4 py-3 font-bold text-gray-900 text-right">
+                                            {{ number_format($expense->amount, 2) }}
+                                        </td>
                                         <td class="px-4 py-3 text-right">
-                                            @if($expense->user_id === auth()->id())
-                                                <form action="{{ route('expenses.destroy', [$colocation, $expense]) }}" method="POST" onsubmit="return confirm('Supprimer cette dépense ?');">
+                                            @if ($expense->user_id === auth()->id())
+                                                <form action="{{ route('expenses.destroy', [$colocation, $expense]) }}"
+                                                    method="POST"
+                                                    onsubmit="return confirm('Supprimer cette dépense ?');">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-500 hover:text-red-700 font-semibold text-xs">Supprimer</button>
+                                                    <button type="submit"
+                                                        class="text-red-500 hover:text-red-700 font-semibold text-xs">Supprimer</button>
                                                 </form>
                                             @endif
                                         </td>
