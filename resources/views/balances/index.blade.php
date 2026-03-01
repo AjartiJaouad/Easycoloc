@@ -99,7 +99,7 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right">
                                             @if(!$settlement->is_paid)
-                                                <form action="{{ route('settlements.mark_paid', $settlement->id) }}" method="POST">
+                                                <form action="{{ route('settlements.mark_paid', $settlement) }}" method="POST">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="submit"

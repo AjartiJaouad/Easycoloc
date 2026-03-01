@@ -10,7 +10,6 @@ class ExpenseController extends Controller
 {
    public function index(\Illuminate\Http\Request $request, \App\Models\Colocation $colocation)
     {
-        // كنتأكدو بلي السيد ساكن فهاد الدار
         if (! $colocation->users->contains(auth()->id())) {
             abort(403, 'Accès refusé.');
         }
@@ -35,33 +34,32 @@ class ExpenseController extends Controller
             $months[$date->format('Y-m')] = $date->format('F Y');
         }
 
-        // 5. كنصيفطو كولشي للڤيو
         return view('expenses.index', compact('colocation', 'expenses', 'categories', 'selectedMonth', 'months'));
     }
 
-    public function store(Request $request, Colocation $colocation)
-    {
-        if (! $colocation->users->contains(auth()->id())) {
-            abort(403, 'Accès refusé.');
-        }
-
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:0.1',
-            'spent_at' => 'required|date',
-            'category_id' => 'required|integer|exists:categories,id',
-        ]);
-
-        $colocation->expenses()->create([
-            'title' => $validated['title'],
-            'amount' => $validated['amount'],
-            'spent_at' => $validated['spent_at'],
-            'category_id' => $validated['category_id'],
-            'user_id' => auth()->id(),
-        ]);
-
-        return redirect()->route('expenses.index', $colocation)->with('success', 'Dépense ajoutée avec succès.');
+   public function store(Request $request, Colocation $colocation)
+{
+    if (! $colocation->users->contains(auth()->id())) {
+        abort(403, 'Accès refusé.');
     }
+
+    $validated = $request->validate([
+        'title'       => 'required|string|max:255',
+        'amount'      => 'required|numeric|min:0.1',
+        'spent_at'    => 'required|date',
+        'category_id' => 'required|integer|exists:categories,id',
+    ]);
+
+    $colocation->expenses()->create([
+        'title'       => $validated['title'],
+        'amount'      => $validated['amount'],
+        'spent_at'    => $validated['spent_at'],
+        'category_id' => $validated['category_id'],
+        'user_id'     => auth()->id(),
+    ]);
+
+    return redirect()->route('expenses.index', $colocation)->with('success', 'Dépense ajoutée avec succès.');
+}
 
     public function destroy(Colocation $colocation, Expense $expense)
     {
