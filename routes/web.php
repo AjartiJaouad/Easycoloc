@@ -52,8 +52,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/colocations/{colocation}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
     Route::delete('/colocations/{colocation}/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
 
-    // Balances
-    Route::get('/colocations/{colocation}/balances', [BalanceController::class, 'index'])->name('balances.index'); 
+    // Balances & Settlements
+    Route::get('/colocations/{colocation}/balances', [BalanceController::class, 'index'])->name('balances.index');
+
+    Route::patch('/settlements/{settlement}/pay', [BalanceController::class, 'markAsPaid'])->name('settlements.mark_paid');
+
 });
 
 require __DIR__.'/auth.php';

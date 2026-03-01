@@ -25,4 +25,10 @@ class Settlement extends Model
     {
         return $this->belongsTo(User::class, 'creditor_id');
     }
+    public function markAsPaid(\App\Models\Settlement $settlement)
+    {
+        $settlement->update(['is_paid' => true]);
+
+        return redirect()->back()->with('success', 'La dette a été marquée comme payée!');
+    }
 }
