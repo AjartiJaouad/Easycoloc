@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\ColocationInvitation;
 use App\Models\Colocation;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -11,6 +12,9 @@ use Illuminate\Support\Str;
 
 class ColocationController extends Controller
 {
+    /**
+     * Affiche la liste des colocations de l'utilisateur.
+     */
     public function index()
     {
         $user = Auth::user();
@@ -19,6 +23,9 @@ class ColocationController extends Controller
         return view('colocations.index', compact('colocations'));
     }
 
+    /**
+     * Affiche le formulaire de création de colocation.
+     */
     public function create()
     {
         if (Auth::user()->colocations()->where('status', 'active')->exists()) {
@@ -28,6 +35,9 @@ class ColocationController extends Controller
         return view('colocations.create');
     }
 
+    /**
+     * Enregistre une nouvelle colocation.
+     */
     public function store(Request $request)
     {
         if (Auth::user()->colocations()->where('status', 'active')->exists()) {
@@ -44,6 +54,7 @@ class ColocationController extends Controller
             'status' => 'active',
         ]);
 
+        // Attacher le créateur comme propriétaire (Owner)
         $colocation->users()->attach(Auth::id(), [
             'role' => 'owner',
         ]);
@@ -51,6 +62,9 @@ class ColocationController extends Controller
         return redirect()->route('colocations.index')->with('success', 'Colocation créée avec succès !');
     }
 
+    /**
+     * Annule une colocation (uniquement pour le propriétaire).
+     */
     public function cancel(Colocation $colocation)
     {
         $isOwner = $colocation->users()
@@ -67,6 +81,9 @@ class ColocationController extends Controller
         return redirect()->route('colocations.index')->with('success', 'La colocation a été annulée avec succès.');
     }
 
+    /**
+     * Envoie une invitation par email.
+     */
     public function sendInvitation(Request $request, Colocation $colocation)
     {
         $request->validate([
@@ -89,6 +106,9 @@ class ColocationController extends Controller
             ->with('success', 'Invitation envoyée avec succès à '.$request->email);
     }
 
+    /**
+     * Permet à un utilisateur de rejoindre une colocation via un token.
+     */
     public function join(Request $request)
     {
         $request->validate(['invitation_token' => 'required|exists:colocations,invitation_token']);
@@ -97,7 +117,7 @@ class ColocationController extends Controller
             return redirect()->back()->with('error', 'Impossible de rejoindre : vous faites déjà partie d\'une colocation active.');
         }
 
-        $colocation = \App\Models\Colocation::where('invitation_token', $request->invitation_token)->first();
+        $colocation = Colocation::where('invitation_token', $request->invitation_token)->first();
 
         if ($colocation->users()->where('user_id', Auth::id())->exists()) {
             return redirect()->back()->with('error', 'Vous êtes déjà membre !');
@@ -106,29 +126,67 @@ class ColocationController extends Controller
         $colocation->users()->attach(Auth::id(), ['role' => 'member', 'joined_at' => now()]);
 
         return redirect()->route('colocations.index')->with('success', 'Bienvenue dans la colocation !');
-
     }
 
+    /**
+     * Permet à un utilisateur de quitter la colocation et met à jour sa réputation.
+     */
     public function leave(Colocation $colocation)
     {
-        $colocation->users()->updateExistingPivot(auth()->id(), [
-            'left_at' => now(),
-        ]);
+        $user = Auth::user();
 
-        return redirect()->route('colocations.index')->with('success', 'Vous avez quitté la colocation.');
+        // Appliquer le système de réputation avant le départ
+        $this->updateUserReputation($user, $colocation);
+
+        // Détacher l'utilisateur de la colocation
+        $colocation->users()->detach($user->id);
+
+        return redirect()->route('colocations.index')->with('success', 'Vous avez quitté la colocation. Votre réputation a été mise à jour.');
     }
 
+    /**
+     * Permet au propriétaire de retirer un membre et met à jour la réputation du membre retiré.
+     */
     public function removeMember(Colocation $colocation, $userId)
     {
         $isOwner = $colocation->users()
             ->where('user_id', auth()->id())
             ->where('colocation_user.role', 'owner')
             ->exists();
+
         if (! $isOwner) {
             return redirect()->back()->with('error', 'Action non autorisée.');
         }
+
+        $userToRemove = User::findOrFail($userId);
+
+        // Appliquer le système de réputation au membre retiré
+        $this->updateUserReputation($userToRemove, $colocation);
+
         $colocation->users()->detach($userId);
 
-        return redirect()->back()->with('success', 'Membre retiré avec succès.');
+        return redirect()->back()->with('success', 'Membre retiré et réputation mise à jour.');
+    }
+
+    /**
+     * Logique de réputation : +1 si le solde est positif ou nul, -1 s'il y a des dettes.
+     */
+    private function updateUserReputation($user, $colocation)
+    {
+        $totalExpenses = $colocation->expenses()->sum('amount');
+        $userCount = $colocation->users()->count();
+
+        if ($userCount > 0) {
+            $fairShare = $totalExpenses / $userCount;
+            $userPaid = $colocation->expenses()->where('user_id', $user->id)->sum('amount');
+
+            // Si l'utilisateur a payé au moins sa part, sa réputation augmente
+            if ($userPaid >= $fairShare) {
+                $user->increment('reputation');
+            } else {
+                // S'il part avec une dette envers la colocation, sa réputation baisse
+                $user->decrement('reputation');
+            }
+        }
     }
 }

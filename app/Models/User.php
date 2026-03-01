@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'is_global_admin',
+        'reputation',
     ];
 
     /**
@@ -67,5 +68,5 @@ class User extends Authenticatable
         return $this->hasMany(Settlement::class, 'creditor_id');
     }
 
-  
+
 }
