@@ -148,25 +148,46 @@ class ColocationController extends Controller
      * Permet au propriétaire de retirer un membre et met à jour la réputation du membre retiré.
      */
     public function removeMember(Colocation $colocation, $userId)
-    {
-        $isOwner = $colocation->users()
-            ->where('user_id', auth()->id())
-            ->where('colocation_user.role', 'owner')
-            ->exists();
-
-        if (! $isOwner) {
-            return redirect()->back()->with('error', 'Action non autorisée.');
-        }
-
-        $userToRemove = User::findOrFail($userId);
-
-        // Appliquer le système de réputation au membre retiré
-        $this->updateUserReputation($userToRemove, $colocation);
-
-        $colocation->users()->detach($userId);
-
-        return redirect()->back()->with('success', 'Membre retiré et réputation mise à jour.');
+{
+    // 1. التحقق: واش اللي باغي يحيد العضو هو الـ Owner؟
+    if (auth()->id() !== $colocation->owner_id) {
+        abort(403, 'Seul l owner peut retirer un membre.');
     }
+
+    $member = $colocation->users()->findOrFail($userId);
+
+    // --- بداية لوجيك الحسابات (Ajustement de dette) ---
+
+    // 2. حساب شحال خاص كل واحد يخلص (Fair Share)
+    $totalSpent = $colocation->expenses()->sum('amount');
+    $membersCount = $colocation->users()->count();
+
+    if ($membersCount > 0) {
+        $fairShare = $totalSpent / $membersCount;
+
+        $memberPaid = $colocation->expenses()->where('user_id', $member->id)->sum('amount');
+
+        $debt = $fairShare - $memberPaid;
+
+        if ($debt > 0) {
+            $colocation->expenses()->create([
+                'title' => "Reprise de dette (Ex-membre: {$member->name})",
+                'amount' => $debt,
+                'spent_at' => now(),
+                'category_id' => $colocation->categories()->first()->id ?? 1,
+                'user_id' => auth()->id(), 
+            ]);
+
+            $member->decrement('reputation');
+        } else {
+            $member->increment('reputation');
+        }
+    }
+
+    $colocation->users()->detach($userId);
+
+    return redirect()->back()->with('success', 'Membre retiré et dettes ajustées avec succès.');
+}
 
     /**
      * Logique de réputation : +1 si le solde est positif ou nul, -1 s'il y a des dettes.
