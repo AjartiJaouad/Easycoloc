@@ -1,107 +1,97 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('Dépenses : ') }} {{ $colocation->name }}
-            </h2>
-            <a href="{{ route('colocations.index') }}" class="text-gray-500 hover:text-gray-700 text-sm font-semibold">
-                &larr; Retour aux colocations
-            </a>
-        </div>
+        <h2 class="text-xl font-semibold text-gray-800">
+            Dashboard - {{ $colocation->name }}
+        </h2>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-8 bg-gray-100 min-h-screen">
+        <div class="max-w-5xl mx-auto px-4 space-y-6">
 
-            {{-- Messages de succès --}}
-            @if (session('success'))
-                <div class="p-4 bg-green-100 text-green-700 border border-green-300 rounded-lg shadow-sm">
-                    {{ session('success') }}
+            <!-- ===== SUMMARY ===== -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Résumé</h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="text-sm text-gray-500">Total</p>
+                        <p class="text-xl font-bold">
+                            {{ number_format($expenses->sum('amount'),2,',',' ') }} €
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="text-sm text-gray-500">Nombre</p>
+                        <p class="text-xl font-bold">
+                            {{ $expenses->count() }}
+                        </p>
+                    </div>
+
+                    <div class="bg-gray-50 p-4 rounded">
+                        <p class="text-sm text-gray-500">Moyenne</p>
+                        <p class="text-xl font-bold">
+                            {{ $expenses->count() > 0
+                                ? number_format($expenses->avg('amount'),2,',',' ')
+                                : 0 }} €
+                        </p>
+                    </div>
                 </div>
-            @endif
+            </div>
 
-            {{-- Formulaire pour ajouter une dépense --}}
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Ajouter une nouvelle dépense</h3>
+            <!-- ===== ADD EXPENSE ===== -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Ajouter une dépense</h3>
 
-                <form action="{{ route('expenses.store', $colocation->id) }}" method="POST" class="flex flex-wrap gap-4 items-center">
+                <form action="{{ route('expenses.store', $colocation->id) }}" method="POST"
+                      class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     @csrf
 
-                    <input type="text" name="title" placeholder="Quoi ? (Ex: Courses)" required
-                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm flex-1">
+                    <input type="text" name="title" placeholder="Description"
+                        class="border rounded px-3 py-2">
 
-                    <input type="number" name="amount" step="0.01" placeholder="Combien ? (€/MAD)" required
-                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm w-32">
+                    <input type="number" name="amount" step="0.01" placeholder="Montant"
+                        class="border rounded px-3 py-2">
 
-                    <input type="date" name="spent_at" required
-                        class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                    <input type="date" name="spent_at"
+                        class="border rounded px-3 py-2">
 
-                    <select name="category_id" required class="border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
-                        <option value="" disabled selected>Catégorie</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
-                    </select>
-
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                    <button type="submit"
+                        class="bg-blue-600 text-white rounded px-4 py-2 hover:bg-blue-700">
                         Ajouter
                     </button>
                 </form>
             </div>
 
-            {{-- Liste des dépenses --}}
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-4">Historique des dépenses</h3>
+            <!-- ===== TABLE ===== -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="p-4 border-b">
+                    <h3 class="text-lg font-semibold">Historique</h3>
+                </div>
 
-                @if ($expenses->isEmpty())
-                    <p class="text-gray-500 text-center py-4">Aucune dépense enregistrée pour le moment.</p>
-                @else
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-left text-sm">
-                            <thead class="border-b bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 font-semibold text-gray-600">Date</th>
-                                    <th class="px-4 py-3 font-semibold text-gray-600">Payé par</th>
-                                    <th class="px-4 py-3 font-semibold text-gray-600">Description</th>
-                                    <th class="px-4 py-3 font-semibold text-gray-600">Catégorie</th>
-                                    <th class="px-4 py-3 font-semibold text-gray-900 text-right">Montant</th>
-                                    <th class="px-4 py-3"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($expenses as $expense)
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="px-4 py-3 text-gray-500">
-                                            {{ \Carbon\Carbon::parse($expense->spent_at)->format('d/m/Y') }}
-                                        </td>
-                                        <td class="px-4 py-3 font-medium text-blue-600">{{ $expense->user->name }}</td>
-                                        <td class="px-4 py-3 text-gray-800">{{ $expense->title }}</td>
-                                        <td class="px-4 py-3 text-gray-500">
-                                            <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs">
-                                                {{ $expense->category->name ?? 'Autre' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 font-bold text-gray-900 text-right">
-                                            {{ number_format($expense->amount, 2) }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right">
-                                            @if ($expense->user_id === auth()->id())
-                                                <form action="{{ route('expenses.destroy', [$colocation, $expense]) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('Supprimer cette dépense ?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit"
-                                                        class="text-red-500 hover:text-red-700 font-semibold text-xs">Supprimer</button>
-                                                </form>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endif
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-sm text-gray-600">
+                        <tr>
+                            <th class="p-3">Date</th>
+                            <th class="p-3">Description</th>
+                            <th class="p-3">Utilisateur</th>
+                            <th class="p-3 text-right">Montant</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($expenses as $expense)
+                            <tr class="border-t">
+                                <td class="p-3">
+                                    {{ \Carbon\Carbon::parse($expense->spent_at)->format('d/m/Y') }}
+                                </td>
+                                <td class="p-3">{{ $expense->title }}</td>
+                                <td class="p-3">{{ $expense->user->name }}</td>
+                                <td class="p-3 text-right font-semibold">
+                                    {{ number_format($expense->amount,2,',',' ') }} €
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
 
         </div>
