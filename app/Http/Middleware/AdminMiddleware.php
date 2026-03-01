@@ -13,13 +13,18 @@ class AdminMiddleware
         $user = Auth::user();
 
         if (!$user) {
-            return redirect('/login'); 
+            return redirect('/login');
+        }
+
+        if ($user->banned_at) {
+            Auth::logout();
+            return redirect()->route('login')->with('error', 'Votre compte a été banni par l\'administrateur.');
         }
 
         if (!$user->is_global_admin) {
-            return redirect('/dashboard')->with('error', 'Access denied.'); // user عادي
+            return redirect('/dashboard')->with('error', 'Access denied. Réservé aux administrateurs.');
         }
 
-        return $next($request); // user admin
+        return $next($request); 
     }
 }
