@@ -8,16 +8,35 @@ use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    public function index(Colocation $colocation)
+   public function index(\Illuminate\Http\Request $request, \App\Models\Colocation $colocation)
     {
+        // كنتأكدو بلي السيد ساكن فهاد الدار
         if (! $colocation->users->contains(auth()->id())) {
             abort(403, 'Accès refusé.');
         }
 
-        $expenses = $colocation->expenses()->with('user')->orderBy('spent_at', 'desc')->get();
+        $selectedMonth = $request->input('month', date('Y-m'));
+        $year = substr($selectedMonth, 0, 4);
+        $month = substr($selectedMonth, 5, 2);
+
+        $expenses = $colocation->expenses()
+            ->with('user')
+            ->whereYear('spent_at', $year)
+            ->whereMonth('spent_at', $month)
+            ->orderBy('spent_at', 'desc')
+            ->get();
+
         $categories = \Illuminate\Support\Facades\DB::table('categories')->where('colocation_id', $colocation->id)->get();
 
-        return view('expenses.index', compact('colocation', 'expenses', 'categories'));
+        $months = [];
+        for ($i = 0; $i < 6; $i++) {
+            $date = \Carbon\Carbon::now()->subMonths($i);
+
+            $months[$date->format('Y-m')] = $date->format('F Y');
+        }
+
+        // 5. كنصيفطو كولشي للڤيو
+        return view('expenses.index', compact('colocation', 'expenses', 'categories', 'selectedMonth', 'months'));
     }
 
     public function store(Request $request, Colocation $colocation)

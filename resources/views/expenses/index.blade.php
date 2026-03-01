@@ -8,7 +8,23 @@
     <div class="py-8 bg-gray-100 min-h-screen">
         <div class="max-w-5xl mx-auto px-4 space-y-6">
 
-            <!-- ===== SUMMARY ===== -->
+            <div class="bg-white p-4 rounded-lg shadow flex flex-col sm:flex-row justify-between items-center gap-4 border-l-4 border-indigo-500">
+                <div class="text-gray-700 font-bold text-sm flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Filtrer les dépenses par mois :
+                </div>
+
+                <form method="GET" action="{{ route('expenses.index', $colocation) }}" class="flex w-full sm:w-auto">
+                    <select name="month" onchange="this.form.submit()" class="block w-full sm:w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow-sm cursor-pointer bg-gray-50 hover:bg-white transition">
+                        @foreach($months as $value => $label)
+                            <option value="{{ $value }}" {{ $selectedMonth == $value ? 'selected' : '' }}>
+                                {{ ucfirst($label) }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
+
             <div class="bg-white p-6 rounded-lg shadow">
                 <h3 class="text-lg font-semibold mb-4">Résumé</h3>
 
@@ -38,7 +54,6 @@
                 </div>
             </div>
 
-            <!-- ===== ADD EXPENSE ===== -->
             <div class="bg-white p-6 rounded-lg shadow">
                 <h3 class="text-lg font-semibold mb-4">Ajouter une dépense</h3>
 
@@ -46,13 +61,13 @@
                       class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     @csrf
 
-                    <input type="text" name="title" placeholder="Description"
+                    <input type="text" name="title" placeholder="Description" required
                         class="border rounded px-3 py-2">
 
-                    <input type="number" name="amount" step="0.01" placeholder="Montant"
+                    <input type="number" name="amount" step="0.01" placeholder="Montant" required
                         class="border rounded px-3 py-2">
 
-                    <input type="date" name="spent_at"
+                    <input type="date" name="spent_at" required
                         class="border rounded px-3 py-2">
 
                     <button type="submit"
@@ -62,7 +77,6 @@
                 </form>
             </div>
 
-            <!-- ===== TABLE ===== -->
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 <div class="p-4 border-b">
                     <h3 class="text-lg font-semibold">Historique</h3>
@@ -78,8 +92,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($expenses as $expense)
-                            <tr class="border-t">
+                        @forelse($expenses as $expense)
+                            <tr class="border-t hover:bg-gray-50">
                                 <td class="p-3">
                                     {{ \Carbon\Carbon::parse($expense->spent_at)->format('d/m/Y') }}
                                 </td>
@@ -89,7 +103,13 @@
                                     {{ number_format($expense->amount,2,',',' ') }} €
                                 </td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr class="border-t">
+                                <td colspan="4" class="p-6 text-center text-gray-500">
+                                    Aucune dépense trouvée pour ce mois.
+                                </td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
