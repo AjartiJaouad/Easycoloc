@@ -4,30 +4,45 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ColocationController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\BalanceController;
+use App\Models\User;
+use App\Models\Colocation;
+use App\Models\Expense;
+
+
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/admin-test', function () {
-    $user = auth()->user();
+Route::middleware('auth')->group(function () {
+    Route::resource('categories', CategoryController::class)
+         ->except(['show']);
+});
 
-    if (! $user) {
-        return redirect('/login');
-    }
-
-    if (! $user->is_global_admin) {
-        return redirect('/dashboard')->with('error', 'Access denied.');
-    }
-
-    return 'Welcome Global Admin!';
-})->middleware('auth');
-
-// Dashboard
 Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware('auth')->name('dashboard');
+    $user = auth()->user;
+    if ($user->is_global_admin) {
+        $stats = [
+            'total_users'   => User::count(),
+            'active_colocs' => Colocation::where('status', 'active')->count(),
+            'total_spent'   => Expense::sum('amount') ?? 0,
+        ];
+
+        $recent_users = User::latest()->take(10)->get();
+
+        return view('dashboard', [
+            'stats' => $stats,
+            'recent_users' => $recent_users
+        ]);
+    }
+    return view('dashboard', [
+        'stats' => null,
+        'recent_users' => collect()
+    ]);
+})->middleware(['auth', 'verified'])->name('dashboard');
+
 
 // Profile routes
 Route::middleware('auth')->group(function () {

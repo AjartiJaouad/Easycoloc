@@ -15,7 +15,7 @@ class BalanceController extends Controller
     public function index(Colocation $colocation)
     {
         // Vérifier si l'utilisateur appartient bien à cette colocation
-        if (! $colocation->users->contains(auth()->id())) {
+        if (! $colocation->users->contains(auth()->id)) {
             abort(403, 'Accès refusé.');
         }
 
@@ -73,7 +73,7 @@ class BalanceController extends Controller
         ]);
 
         $colocation->expenses()->create([
-            'user_id'     => auth()->id(),
+            'user_id'     => auth()->id,
             'description' => $data['description'],
             'amount'      => $data['amount'],
         ]);

@@ -91,7 +91,7 @@
                         @endforelse
                     </select>
 
-                    <button type="submit" class="bg-green-600 text-white rounded-md px-4 py-2 hover:bg-green-700 transition font-bold shadow-md">
+                    <button type="submit" class="bg-green-600 text-blue rounded-md px-4 py-2 hover:bg-green-700 transition font-bold shadow-md border-blue-900">
                         + Ajouter
                     </button>
                 </form>

@@ -85,17 +85,11 @@
                                         <code class="font-mono text-blue-700 font-bold text-lg select-all">{{ $colocation->invitation_token }}</code>
                                     </div>
 
-                                    {{-- 🌟 BOUTONS DÉPENSES ET ÉQUILIBRES ICI 🌟 --}}
-                                    <div class="mt-4 flex flex-col sm:flex-row gap-2">
-                                        <a href="{{ route('expenses.index', $colocation) }}"
-                                            class="flex-1 text-center bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-bold py-2 px-3 rounded-lg text-sm transition">
-                                            🛒 Dépenses
-                                        </a>
-                                        <a href="{{ route('balances.index', $colocation) }}"
-                                            class="flex-1 text-center bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 font-bold py-2 px-3 rounded-lg text-sm transition">
-                                            ⚖️ Équilibres
-                                        </a>
-                                    </div>
+                                    {{-- 🌟 BOUTON DÉPENSES VISIBLE PAR TOUT LE MONDE ICI 🌟 --}}
+                                    <a href="{{ route('expenses.index', $colocation) }}"
+                                        class="block mt-4 text-center w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition">
+                                        Gérer les dépenses
+                                    </a>
 
                                     {{-- Gestion des membres (Uniquement pour le Propriétaire) --}}
                                     @if ($colocation->pivot->role === 'owner')

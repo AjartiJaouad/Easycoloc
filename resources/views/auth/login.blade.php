@@ -1,57 +1,47 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>EasyColoc – Connexion</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<x-guest-layout>
+    <!-- Session Status -->
+    <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <div class="bg-white p-6 rounded-xl shadow-md w-80">
+    <form method="POST" action="{{ route('login') }}">
+        @csrf
 
-        <!-- Title -->
-        <h1 class="text-xl font-bold text-center mb-4">EasyColoc</h1>
-        <p class="text-sm text-gray-500 text-center mb-4">Connexion</p>
+        <!-- Email Address -->
+        <div>
+            <x-input-label for="email" :value="__('Email')" />
+            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        </div>
 
-        <!-- Form -->
-        <form>
+        <!-- Password -->
+        <div class="mt-4">
+            <x-input-label for="password" :value="__('Password')" />
 
-            <!-- Email -->
-            <input
-                type="email"
-                placeholder="Email"
-                class="w-full border p-2 rounded mb-3"
-                required
-            >
+            <x-text-input id="password" class="block mt-1 w-full"
+                            type="password"
+                            name="password"
+                            required autocomplete="current-password" />
 
-            <!-- Password -->
-            <input
-                type="password"
-                placeholder="Mot de passe"
-                class="w-full border p-2 rounded mb-3"
-                required
-            >
+            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        </div>
 
-            <!-- Checkbox -->
-            <div class="mb-3 text-sm">
-                <input type="checkbox"> Se souvenir de moi
-            </div>
+        <!-- Remember Me -->
+        <div class="block mt-4">
+            <label for="remember_me" class="inline-flex items-center">
+                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
+                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+            </label>
+        </div>
 
-            <!-- Button -->
-            <button
-                class="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700">
-                Se connecter
-            </button>
+        <div class="flex items-center justify-end mt-4">
+            @if (Route::has('password.request'))
+                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                    {{ __('Forgot your password?') }}
+                </a>
+            @endif
 
-        </form>
-
-        <!-- Register -->
-        <p class="text-sm text-center mt-4">
-            Pas encore membre ?
-            <a href="#" class="text-indigo-600">Créer un compte</a>
-        </p>
-
-    </div>
-
-</body>
-</html>
+            <x-primary-button class="ms-3">
+                {{ __('Log in') }}
+            </x-primary-button>
+        </div>
+    </form>
+</x-guest-layout>
